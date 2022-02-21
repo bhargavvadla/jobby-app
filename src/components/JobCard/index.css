@@ -1,0 +1,11 @@
+.job-card {
+  width: 30%;
+  max-width: 500px;
+  margin-right: 25px;
+  margin-bottom: 30px;
+}
+@media screen and (max-width: 992px) {
+  .job-card {
+    width: 100%;
+  }
+}
