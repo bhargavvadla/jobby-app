@@ -69,25 +69,24 @@ class Jobs extends Component {
   }
 
   renderLoadingView = () => (
-    <div className="loader-container">
-      <Loader
-        testid="loader"
-        type="ThreeDots"
-        color="#fff"
-        height="80"
-        width="80"
-      />
+    <div className="loader-container" testid="loader">
+      <Loader type="ThreeDots" color="#fff" height="80" width="80" />
     </div>
   )
 
+  //   getUrl = () => {
+  //       return jobsApiUrl
+  //         url = this.getUrl()
+  //     }
+
   getJobs = async () => {
     this.setState({jobsApiStatus: apiStatusConstants.inProgress})
-
-    const jwtToken = Cookies.get('jwt_token')
-
     const {employmentType, salaryRange, searchInput} = this.state
 
-    const jobsApiUrl = `https://apis.ccbp.in/jobs?employment_type=${employmentType}&salary_range=${salaryRange}&search=${searchInput}`
+    const jobsSearchTypes = employmentType.join(',')
+    const jobsApiUrl = `https://apis.ccbp.in/jobs?employment_type=${jobsSearchTypes}&minimum_package=${salaryRange}&search=${searchInput}`
+    const jwtToken = Cookies.get('jwt_token')
+
     const options = {
       method: 'GET',
       headers: {
@@ -164,42 +163,12 @@ class Jobs extends Component {
   }
 
   renderJobsSuccessView = () => {
-    const {jobsList, salaryRange, employmentType} = this.state
+    const {jobsList} = this.state
 
-    const filterJob = job => {
-      const salary = parseInt(job.packagePerAnnum.split(' ')[0]) * 100000
-
-      if (employmentType.length !== 0 && salaryRange === 0) {
-        const hasEmploymentType = employmentType.includes(
-          job.employmentType.split(' ').join('').toUpperCase(),
-        )
-        if (hasEmploymentType) return true
-      } else if (employmentType.length === 0 && salaryRange !== 0) {
-        const hasSalaryIncluded = salary >= salaryRange
-        if (hasSalaryIncluded) return true
-      } else if (employmentType.length !== 0 && salaryRange !== 0) {
-        const hasEmploymentType = employmentType.includes(
-          job.employmentType.split(' ').join('').toUpperCase(),
-        )
-        const hasSalaryIncluded = salary >= salaryRange
-
-        if (hasEmploymentType && hasSalaryIncluded) return true
-      }
-
-      if (salaryRange === 0 && employmentType.length === 0)
-        return jobsList.map(eachJob => (
-          <JobItem key={eachJob.id} job={eachJob} />
-        ))
-
-      return false
-    }
-
-    const filteredJobs = jobsList.filter(filterJob)
-
-    if (filteredJobs.length === 0) return this.renderNoJobsView()
+    if (jobsList.length === 0) return this.renderNoJobsView()
     return (
       <ul className="all-jobs-container">
-        {filteredJobs.map(eachJob => (
+        {jobsList.map(eachJob => (
           <JobItem key={eachJob.id} job={eachJob} />
         ))}
       </ul>
@@ -212,23 +181,31 @@ class Jobs extends Component {
     if (employmentType.includes(e.target.value)) {
       const updatedEmploymentTypeList = employmentType.filter(
         eachEmploymentType =>
-          eachEmploymentType !== e.target.value && e.target.value,
+          eachEmploymentType !== e.target.value && eachEmploymentType,
       )
 
-      this.setState({
-        employmentType: updatedEmploymentTypeList,
-      })
+      this.setState(
+        {
+          employmentType: updatedEmploymentTypeList,
+        },
+        this.getJobs,
+      )
     } else {
-      this.setState(prevState => ({
-        employmentType: [...prevState.employmentType, e.target.value],
-      }))
+      const uniqueEmploymentTypes = employmentType.filter(
+        eachEmploymentType => eachEmploymentType !== e.target.value,
+      )
+
+      this.setState(
+        {employmentType: [...uniqueEmploymentTypes, e.target.value]},
+        this.getJobs,
+      )
     }
   }
 
   onSalaryRangeChange = e => {
     const selectedSalary = parseInt(e.target.value)
 
-    this.setState({salaryRange: selectedSalary})
+    this.setState({salaryRange: selectedSalary}, this.getJobs)
   }
 
   renderProfileSuccessView = () => {
@@ -266,7 +243,7 @@ class Jobs extends Component {
               value={eachEmploymentType.employmentTypeId}
               onClick={this.onEmploymentTypeChange}
             />
-            <label forHtml={eachEmploymentType.employmentTypeId}>
+            <label htmlFor={eachEmploymentType.employmentTypeId}>
               {eachEmploymentType.label}
             </label>
           </div>
@@ -292,7 +269,7 @@ class Jobs extends Component {
               value={parseInt(eachSalaryRange.salaryRangeId)}
               onClick={this.onSalaryRangeChange}
             />
-            <label forHtml={eachSalaryRange.salaryRangeId}>
+            <label htmlFor={eachSalaryRange.salaryRangeId}>
               {eachSalaryRange.label}
             </label>
           </div>
@@ -304,7 +281,7 @@ class Jobs extends Component {
 
   renderProfileFailureView = () => (
     <div className="profile-failure-view">
-      <button className="retry-btn" type="button" onClick={this.getJobs()}>
+      <button className="retry-btn" type="button" onClick={this.getProfileData}>
         Retry
       </button>
     </div>
@@ -318,6 +295,13 @@ class Jobs extends Component {
           className="failure-image"
           alt="failure view"
         />
+        <h1 className="failure-title">Oops! Something Went Wrong</h1>
+        <p className="failure-description">
+          We cannot seem to find the page you are looking for
+        </p>
+        <button className="retry-btn" type="button" onClick={this.getJobs}>
+          Retry
+        </button>
       </div>
     </div>
   )
@@ -330,7 +314,10 @@ class Jobs extends Component {
           className="failure-image"
           alt="no jobs"
         />
-        <p className="failure-title">We could not find any jobs</p>
+        <h1 className="failure-title">No Jobs Found</h1>
+        <p className="failure-description">
+          We could not find any jobs, Try other filters
+        </p>
       </div>
     </>
   )
@@ -382,6 +369,7 @@ class Jobs extends Component {
                 <input
                   className="search-input"
                   placeholder="Search"
+                  type="search"
                   value={searchInput}
                   onChange={this.onSearchChange}
                 />
@@ -389,12 +377,9 @@ class Jobs extends Component {
                   className="search-icon-btn"
                   type="button"
                   testid="searchButton"
+                  onClick={this.onClickSearch}
                 >
-                  <AiOutlineSearch
-                    className="search-icon"
-                    onClick={this.onClickSearch}
-                    value={searchInput}
-                  />
+                  <AiOutlineSearch className="search-icon" />
                 </button>
               </div>
               {this.renderJobsView()}

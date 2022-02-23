@@ -102,18 +102,14 @@ class JobItemDetails extends Component {
       <p className="jobs-failure-description">
         We cannot seem to find the page you are looking for
       </p>
-      <button
-        className="retry-btn"
-        type="button"
-        onClick={this.getJobDetails()}
-      >
+      <button className="retry-btn" type="button" onClick={this.getJobDetails}>
         Retry
       </button>
     </div>
   )
 
   renderLoadingView = () => (
-    <div className="loader-container">
+    <div className="loader-container" testid="loader">
       <Loader
         testid="loader"
         type="ThreeDots"
@@ -174,11 +170,11 @@ class JobItemDetails extends Component {
     return (
       <div className="job-item-container-responsive">
         <div className="job-item">
-          <div className="job-item-responsive">
-            <div className="job-header">
+          <ul className="job-item-responsive">
+            <li className="job-header">
               <img
                 src={companyLogoUrl}
-                alt="job img"
+                alt="job details company logo"
                 className="company-logo"
               />
               <div className="job-header-content">
@@ -188,8 +184,8 @@ class JobItemDetails extends Component {
                   <p className="job-rating">{rating}</p>
                 </div>
               </div>
-            </div>
-            <div className="job-details">
+            </li>
+            <li className="job-details">
               <div className="job-details-content">
                 <div className="job-card-tag">
                   <MdLocationOn className="job-details-icon" />
@@ -201,9 +197,9 @@ class JobItemDetails extends Component {
                 </div>
               </div>
               <p className="job-package">{packagePerAnnum}</p>
-            </div>
+            </li>
             <hr className="job-divider" />
-            <div className="title-url-container">
+            <li className="title-url-container">
               <h1 className="job-item-title">Description</h1>
               <div className="visit-link-container">
                 <a
@@ -215,7 +211,7 @@ class JobItemDetails extends Component {
                 </a>
                 <FiExternalLink className="external-link-icon" />
               </div>
-            </div>
+            </li>
             <p className="job-item-description">{jobDescription}</p>
             <h1 className="job-item-title">Skills</h1>
             <ul className="skills-container">
@@ -224,7 +220,7 @@ class JobItemDetails extends Component {
                   <img
                     src={eachSkill.imageUrl}
                     className="skill-image"
-                    alt={eachSkill.id}
+                    alt={eachSkill.name}
                   />
                   {eachSkill.name}
                 </li>
@@ -239,7 +235,7 @@ class JobItemDetails extends Component {
                 alt="life at company img"
               />
             </div>
-          </div>
+          </ul>
         </div>
         <h1 className="similar-job-heading">Similar Jobs</h1>
         {this.renderSimilarJobsView()}

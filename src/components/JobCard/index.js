@@ -21,8 +21,8 @@ const JobCard = props => {
         <div className="job-header">
           <img
             src={companyLogoUrl}
-            alt="company logo"
-            className="similar job company logo"
+            alt="similar job company logo"
+            className="company-logo"
           />
           <div className="job-header-content">
             <h1 className="job-header-title">{title}</h1>

@@ -5,6 +5,7 @@
   justify-content: center;
   height: 17vh;
   align-items: center;
+  width: 100%;
 }
 @media screen and (max-width: 992px) {
   .header-container {
